@@ -12,10 +12,6 @@ output_csv = os.path.join(image_folder, 'points_coordinates.csv')  # Output CSV 
 # Path to the reshaped CSV file
 reshaped_csv = os.path.join(image_folder, 'reshaped_points_coordinates.csv')
 
-# # If an old CSV file exists, delete it
-# if os.path.exists(output_csv):
-#     os.remove(output_csv)
-
 # Create an empty list to store annotation results
 annotations = []
 
@@ -23,7 +19,7 @@ annotations = []
 def mouse_callback(event, x, y, flags, param):
     global annotations, image_name, img_display
     if event == cv2.EVENT_LBUTTONDOWN:
-        print(f'在图像 {image_name} 中点击了位置 ({x}, {y})')
+        print(f'Clicked at position ({x}, {y}) in image {image_name}')
         annotations.append({'image_name': image_name, 'x': x, 'y': y})
         # Draw a smaller red circle on the image to indicate the click position
         cv2.circle(img_display, (x, y), 3, (0, 0, 255), -1)
@@ -39,7 +35,7 @@ def mouse_callback(event, x, y, flags, param):
             # Remove this annotation point from annotations
             removed_annotation = current_annotations[min_idx]
             annotations.remove(removed_annotation)
-            print(f'删除了图像 {image_name} 中位置 ({removed_annotation["x"]}, {removed_annotation["y"]}) 的标记点')
+            print(f'Removed annotation at ({removed_annotation["x"]}, {removed_annotation["y"]}) in image {image_name}')
             # Redraw the image
             img_display = img.copy()
             cv2.putText(img_display, image_name, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
@@ -49,7 +45,7 @@ def mouse_callback(event, x, y, flags, param):
                     cv2.circle(img_display, (ann['x'], ann['y']), 3, (0, 0, 255), -1)
             cv2.imshow(window_name, img_display)
         else:
-            print('当前图像没有可删除的标记点。')
+            print('No annotation points to delete in the current image.')
 
 # Get list of image files
 image_files = [f for f in os.listdir(image_folder) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp'))]
@@ -72,7 +68,7 @@ while 0 <= current_image_index < len(image_files):
     image_name = image_file
     img = cv2.imread(image_path)
     if img is None:
-        print(f'无法读取图像：{image_path}')
+        print(f'Failed to read image: {image_path}')
         current_image_index += 1
         continue
 
@@ -85,10 +81,10 @@ while 0 <= current_image_index < len(image_files):
         if annotation['image_name'] == image_name:
             cv2.circle(img_display, (annotation['x'], annotation['y']), 3, (0, 0, 255), -1)
 
-    print(f'正在标记图像：{image_name}')
-    print('请在图像上点击鼠标左键以记录多个点的坐标。')
-    print('右键点击删除最近的标记点。')
-    print('按 "d" 键或右箭头键跳到下一张图像，按 "a" 键或左箭头键返回上一张图像，按 "s" 键保存标注结果，按 "m" 键切换全屏/窗口模式，按 "Esc" 键退出程序。')
+    print(f'Annotating image: {image_name}')
+    print('Left-click on the image to record point coordinates.')
+    print('Right-click to delete the nearest annotation point.')
+    print('Press "d" or right arrow to move to the next image, "a" or left arrow to go back, "s" to save annotations, "m" to toggle fullscreen/windowed mode, "Esc" to exit.')
 
     while True:
         # Display image
@@ -99,13 +95,13 @@ while 0 <= current_image_index < len(image_files):
             if current_image_index < len(image_files) - 1:
                 current_image_index += 1
             else:
-                print("已经是最后一张图像，无法前进。")
+                print("Already at the last image; cannot advance.")
             break
         elif key == ord('a') or key == 81:  # Press 'a' or left arrow to go back to previous image
             if current_image_index > 0:
                 current_image_index -= 1
             else:
-                print("已经是第一张图像，无法返回上一张。")
+                print("Already at the first image; cannot go back further.")
             break
         elif key == ord('m'):  # Press 'm' to toggle full‑screen/windowed mode
             if is_fullscreen:
@@ -123,7 +119,7 @@ while 0 <= current_image_index < len(image_files):
             if current_annotations:
                 last_annotation = current_annotations[-1]
                 annotations.remove(last_annotation)
-                print(f'撤销了图像 {image_name} 中位置 ({last_annotation["x"]}, {last_annotation["y"]}) 的标记点')
+                print(f'Undid annotation at ({last_annotation["x"]}, {last_annotation["y"]}) in image {image_name}')
                 # Redraw the image
                 img_display = img.copy()
                 cv2.putText(img_display, image_name, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
@@ -132,7 +128,7 @@ while 0 <= current_image_index < len(image_files):
                         cv2.circle(img_display, (ann['x'], ann['y']), 3, (0, 0, 255), -1)
                 cv2.imshow(window_name, img_display)
             else:
-                print('当前图像没有可撤销的标记点。')
+                print('No annotation points to undo in the current image.')
         elif key == ord('s'):  # Press 's' to save annotation results
             # Save annotation results to CSV file
             with open(output_csv, 'w', newline='') as csvfile:
@@ -141,7 +137,7 @@ while 0 <= current_image_index < len(image_files):
                 writer.writeheader()
                 for annotation in annotations:
                     writer.writerow(annotation)
-            print(f'标注结果已保存到 {output_csv}')
+            print(f'Annotation results have been saved to {output_csv}')
 
             # Perform data reshaping
             df = pd.read_csv(output_csv)
@@ -156,7 +152,7 @@ while 0 <= current_image_index < len(image_files):
 
             # Save to CSV file
             df_wide.to_csv(reshaped_csv, index=False)
-            print(f'数据已转换并保存到 {reshaped_csv}')
+            print(f'Data reshaped and saved to {reshaped_csv}')
 
     if should_exit:
         break  # Exit the outer loop
@@ -171,8 +167,4 @@ with open(output_csv, 'w', newline='') as csvfile:
     writer.writeheader()
     for annotation in annotations:
         writer.writerow(annotation)
-print(f'标注完成，结果已保存到 {output_csv}')
-
-# Perform data reshaping
-df = pd.read_csv(output_csv)
-""
+print(f'Annotation completed; results saved to {output_csv}')
