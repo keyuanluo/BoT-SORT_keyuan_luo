@@ -22,6 +22,12 @@ from tracker.tracking_utils.timer import Timer
 sys.path.insert(0, './yolov7')
 sys.path.append('.')
 
+
+# import sys
+# print(sys.path)
+# print("good!")
+
+
 def write_results(filename, results):
     save_format = '{frame},{id},{x1},{y1},{w},{h},{s},-1,-1,-1\n'
     with open(filename, 'w') as f:
@@ -194,8 +200,8 @@ if __name__ == '__main__':
     parser.add_argument('--weights', nargs='+', type=str, default='yolov7.pt', help='model.pt path(s)')
     parser.add_argument('--source', type=str, default='inference/images', help='source')  # file/folder, 0 for webcam
     parser.add_argument('--img-size', type=int, default=1920, help='inference size (pixels)')
-    parser.add_argument('--conf-thres', type=float, default=0.09, help='object confidence threshold')
-    parser.add_argument('--iou-thres', type=float, default=0.7, help='IOU threshold for NMS')
+    parser.add_argument('--conf-thres', type=float, default=0.09, help='object confidence threshold') #!!!!!默认值为0.09/尝试过0.75效果蛮好/0.85配合yolov7_w6完美识别image4
+    parser.add_argument('--iou-thres', type=float, default=0.7, help='IOU threshold for NMS') #!!!!!!默认值为0.7
     parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
     parser.add_argument('--view-img', action='store_true', help='display results')
     parser.add_argument('--save-txt', action='store_true', help='save results to *.txt')
@@ -212,32 +218,34 @@ if __name__ == '__main__':
     parser.add_argument('--hide-labels-name', default=False, action='store_true', help='hide labels')
 
     # tracking args
-    parser.add_argument("--track_high_thresh", type=float, default=0.3, help="tracking confidence threshold")
-    parser.add_argument("--track_low_thresh", default=0.05, type=float, help="lowest detection threshold")
-    parser.add_argument("--new_track_thresh", default=0.4, type=float, help="new track thresh")
-    parser.add_argument("--track_buffer", type=int, default=30, help="the frames for keep lost tracks")
-    parser.add_argument("--match_thresh", type=float, default=0.7, help="matching threshold for tracking")
+    parser.add_argument("--track_high_thresh", type=float, default=0.3, help="tracking confidence threshold") #!!!!!默认值是0.3
+    parser.add_argument("--track_low_thresh", default=0.05, type=float, help="lowest detection threshold")  #!!!!!!默认值是0.05
+    parser.add_argument("--new_track_thresh", default=0.4, type=float, help="new track thresh") #!!!!!!!!!默认值为0.4
+    parser.add_argument("--track_buffer", type=int, default=5, help="the frames for keep lost tracks") #!!!!!!!!默认值为30 /尝试50
+    parser.add_argument("--match_thresh", type=float, default=0.75, help="matching threshold for tracking") #original 0.75 误关联可以提高这个值/变动过一次为0.8
     parser.add_argument("--aspect_ratio_thresh", type=float, default=1.6,
-                        help="threshold for filtering out boxes of which aspect ratio are above the given value.")
+                        help="threshold for filtering out boxes of which aspect ratio are above the given value.")   #!!!!!默认值为1.6
     parser.add_argument('--min_box_area', type=float, default=10, help='filter out tiny boxes')
     parser.add_argument("--fuse-score", dest="mot20", default=False, action="store_true",
-                        help="fuse score and iou for association")
+                        help="fuse score and iou for association")              #mot20不能改
+
 
     # CMC
     parser.add_argument("--cmc-method", default="sparseOptFlow", type=str, help="cmc method: sparseOptFlow | files (Vidstab GMC) | orb | ecc")
-
+    # sparseOptFlow /ecc
     # ReID
     parser.add_argument("--with-reid", dest="with_reid", default=False, action="store_true", help="with ReID module.")
-    parser.add_argument("--fast-reid-config", dest="fast_reid_config", default=r"fast_reid/configs/MOT17/sbs_S50.yml",
+    parser.add_argument("--fast-reid-config", dest="fast_reid_config", default=r"fast_reid/configs/MOT20/sbs_S50.yml",
                         type=str, help="reid config file path")
-    parser.add_argument("--fast-reid-weights", dest="fast_reid_weights", default=r"pretrained/mot17_sbs_S50.pth",
+    parser.add_argument("--fast-reid-weights", dest="fast_reid_weights", default=r"pretrained/mot20_sbs_S50.pth",
                         type=str, help="reid config file path")
     parser.add_argument('--proximity_thresh', type=float, default=0.5,
-                        help='threshold for rejecting low overlap reid matches')
+                        help='threshold for rejecting low overlap reid matches')         #!!!!!!!!!!!!!!!!!!!!默认0.5
     parser.add_argument('--appearance_thresh', type=float, default=0.25,
-                        help='threshold for rejecting low appearance similarity reid matches')
+                        help='threshold for rejecting low appearance similarity reid matches') #!!!!!!!!!!!!!!!!!!!!! 默认0.25
 
     opt = parser.parse_args()
+    opt.classes = [0]   #mask this model only track the walkers
 
     opt.jde = False
     opt.ablation = False
